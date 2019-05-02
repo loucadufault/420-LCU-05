@@ -1,19 +1,25 @@
-import sys
-
 students = [] #the 2-dimensional matrix used to store the records (each in the form of an 8-item list) for all students
 
 def menu():
-    print('\n')
-    print(
+    while True:
+        print('\n')
+        print(
 """Welcome to the Teacher’s Simple Class Calculator. Here’s the list of options:
-    1- Enter student records (Name, ID, and 6 marks separated by commas)
-    2- Display the class average
-    3- Display the total grade, letter grade and relation to class average for a given student
-    4- Display a simple bar chart to show grade distribution
-    5- Exit"""
-        )
+    1- Read and process all students’ records
+    2- Display All student records including total and letter grades and class average
+    3- Display the complete record of a particular student
+    4- Update a student’s grade
+    5- Display a list of all students who achieved a particular letter grade
+    6- Exit"""
+            )
         
-    return int(input())
+        try:
+            option = int(input())
+            if (option >= 1) and (option <= 5): return option
+            else: print('Please enter a number between 1 and 5.')
+        except:
+            print('Please enter an integer.')
+            continue
 
 def is_unique(ID):
     for record in students:
@@ -28,14 +34,37 @@ def record_exists(name, ID): #checks if a student record exists
     return False
 
 def validate_record(record): #record is a string
-    record = record.split(',')[:8] #slice and take only the first 8 items, in case the input record is too many items long, since there is no validation for records too long
+    if ',' in record:
+        record = record.split(',')
+    else:
+        print('Please separate items in the record by commas, no spaces.', end='')
+        return False
 
     if len(record) < 8:
         print('Record incomplete.', end='')
         return False
-
-    for i in range(1, 8): #cast the ID and all grades to integer
-        record[i] = int(record[i])
+    if len(record) > 8:
+        print('Record has too many items.', end='')
+        return False
+            
+    for i in range(1, 8): #try to cast the ID and all grades to integer
+        try:
+            record[i] = int(record[i])
+        except:
+            print(record[i] + ' must be an integer.', end='')
+            return False
+            
+    if (record[1] < 0) or (record[1] > 999): #ID
+        print('ID must be between 000 and 999.', end='')
+        return False
+    for i in range(2,4): #tests
+        if (record[i] < 0) or (record[i] > 20):
+            print('Test grades must be between 0 and 20.', end='')
+            return False
+    for i in range(4,8): #assignments
+        if (record[i] < 0) or (record[i] > 15):
+            print('Asignment grades must be between 0 and 15.', end='')
+            return False
 
     if not (is_unique(record[1])): #check if the inputed ID is unique
         print('Duplicate ID number.', end='')
@@ -44,9 +73,25 @@ def validate_record(record): #record is a string
     return record #if record is valid and the function has gone through all previous validation tests without returning False
 
 def validate_query(query): #query is a string
-    query = query.split(',')
+    if ',' in query:
+        query = query.split(',')
+    else:
+        print('Please separate the name and ID by a comma, no spaces.', end='')
+        return False
     
-    query[1] = int(query[1]) #cast the ID to int
+    if len(query) != 2:
+        print('Please enter both the name and ID.', end='')
+        return False
+    
+    try: #try to cast the query ID to int
+        query[1] = int(query[1])
+    except:
+        print('The ID must be an integer.', end='')
+        return False
+
+    if (query[1] < 0) or (query[1] > 999):
+        print('ID must be between 000 and 999.', end='')
+        return False
 
     if not (record_exists(query[0], query[1])): #check if there are any records matching the query
         print('No student records matching that query.', end='')
@@ -80,9 +125,6 @@ def deviation(student_average, class_average):
     
 while True: #main loop
     option = menu()
-    
-    if option == 5: sys.exit()
-    
     if option == 1:
         while True: #record inputing loop. continuously receive record inputs, validate them, store them in the students matrix if valid, and repeat until the user breaks out of this loop by inputing the keyword 'done'
             raw_record = input("Enter students record (separated by commas, no spaces) or done: ")

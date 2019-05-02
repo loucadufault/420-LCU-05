@@ -1,3 +1,5 @@
+import sys
+
 students = [] #the 2-dimensional matrix used to store the records (each in the form of an 8-item list) for all students
 
 def menu():
@@ -124,6 +126,9 @@ def deviation(student_average, class_average):
     
 while True: #main loop
     option = menu()
+    
+    if option == 5: sys.exit()
+    
     if option == 1:
         while True: #record inputing loop. continuously receive record inputs, validate them, store them in the students matrix if valid, and repeat until the user breaks out of this loop by inputing the keyword 'done'
             raw_record = input("Enter students record (separated by commas, no spaces) or done: ")
@@ -141,7 +146,7 @@ while True: #main loop
             print('Record accepted') #continue to receive next record input
                    
         continue #restart the main loop, after the code execution has broken out of the nested record inputing while loop, once the user inputs the keyword 'done'
-
+    
     if len(students) == 0:#if they have not chosen option 1 and there are not entered records, then the following options (2 and 3) cannot be processed
         print('No records were entered. Please choose option 1 first.')
         continue #restart the main loop
