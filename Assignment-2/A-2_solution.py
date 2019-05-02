@@ -32,7 +32,7 @@ def record_exists(name, ID): #checks if a student record exists
             return True
     return False
 
-def validate_record(record):
+def validate_record(record): #record is a string
     if ',' in record:
         record = record.split(',')
     else:
@@ -65,7 +65,7 @@ def validate_record(record):
             print('Asignment grades must be between 0 and 15.', end='')
             return False
 
-    if not (is_unique(record[1])):
+    if not (is_unique(record[1])): #check if the inputed ID is unique
         print('Duplicate ID number.', end='')
         return False
         
@@ -82,7 +82,7 @@ def validate_query(query): #query is a string
         print('Please enter both the name and ID.', end='')
         return False
     
-    try: #try to cast the query ID to an integer
+    try: #try to cast the query ID to int
         query[1] = int(query[1])
     except:
         print('The ID must be an integer.', end='')
@@ -92,7 +92,7 @@ def validate_query(query): #query is a string
         print('ID must be between 000 and 999.', end='')
         return False
 
-    if not (record_exists(query[0], query[1])):
+    if not (record_exists(query[0], query[1])): #check if there are any records matching the query
         print('No student records matching that query.', end='')
         return False
 
