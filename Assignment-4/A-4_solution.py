@@ -1,4 +1,9 @@
+import sys
+
 FILENAME = 'students.txt'
+DELIM = ','
+LETTERS = ('A', 'B', 'C', 'D')
+
 students_list = []
 
 def menu():
@@ -22,10 +27,30 @@ def menu():
             print('Please enter an integer.')
             continue
 
+def display_table(part):
+    '''Formatting the table that displays the records. Accounts for longer and shorter names by using padding to extend or shorten the table rows. Is called in option2,3 and 4().'''
+    padding = Student.max_name_len - len('Names')
+    if part == 'header': #the function is called with an argument that determines what to display
+        print('+{}------------|-----------------------------|----------------+'.format('-'*padding))
+        print('| {:^{}} |            GRADE            |     REPORT     |'.format('INFO', len(' - ID ') + Student.max_name_len))
+        print('>{}------------|-----------------------------|---------------<'.format('-'*padding))
+        print('| {}Name - ID  | T1 | T2 | A1 | A2 | A3 | A4 | Total | Letter |'.format(' '*padding))
+        print('>{}------------|----|----|----|----|----|----|-------|--------<'.format('-'*padding))
+    elif part == 'footer':
+        print('+{}------------|-----------------------------|----------------+'.format('-'*padding))
+    elif part == 'letter':
+        print('+--------------|-----------------------+')
+        print('| Letter Grade |  {}  |  {}  |  {}  |  {}  |'.format(*LETTERS)) #unpack the global constant tuple into each placeholder
+        print('>--------------|-----------------------<')
+
 
 class Student:
+    student_count, max_name_len = 0, 0 #class variables
+    
     def __init__(self, name, ID, T1, T2, A1, A2, A3, A4):
-        self.name = name 
+        self.name = name
+        if len(self.name) > Student.max_name_len: #updates the max_name_len class variable each time a name is read that is longer than the previous max
+            Student.max_name_len = len(self.name)
         self.ID = ID
         self.T1 = T1
         self.T2 = T2
@@ -34,12 +59,19 @@ class Student:
         self.A3 = A3
         self.A4 = A4
         self.total = self.get_total()
-        self.lette = self.get_letter()
+        self.letter = self.get_letter()
+
+        Student.student_count += 1 #increment the amount of student instances everytime __init__ is called (upon each instance creation)
 
     def __repr__(self):
-        text='{:8s} {:>8d} {:>6d} {:>6d} {:>6d} {:>6d} {:>6d} {:>6d} {:>6d} {:>6s}'
-        return(text.format(self.name,self.id,self.t1,self.t2,self.a1,self.a2,self.a3,self.a4,self.tot,self.letter))
+        return "{} - {}: {} {}".format(self.name, self.ID, self.total, self.letter)
 
+    def __str__(self):
+        return "| {:>{}} - {:<3} | {:2} | {:2} | {:2} | {:2} | {:2} | {:2} |  {:>3}  |   {:>2}   |".format(self.name, Student.max_name_len, self.ID, self.T1, self.T2, self.A1, self.A2, self.A3, self.A4, self.total, self.letter)
+
+    def __del__(self):
+        student_count -= 1
+    
     def get_total(self):
         return (self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4)
 
@@ -57,10 +89,15 @@ class Student:
         elif grade_name == 'A3': self.A3 = grade_value
         elif grade_name == 'A4': self.A4 = grade_value
 
+def is_unique(ID):
+    for instance in students_list:
+        if instance.ID == ID:
+            return False
+    return True
 
 def validate_record(record):
     if ',' in record:
-        record = record.split(',')
+        record = record.split(DELIM) #split the record on the comma character to return a list of CSV items
     else:
         print('Please separate items in the record by commas, no spaces.', end='')
         return False
@@ -122,25 +159,24 @@ def validate_grade(grade_name, grade_value):
 
 while True:
     option = menu()
-    
+
     if option == 1:
-        with open(FILENAME, 'r') as f: #file context manager
-            for line in f: #iterate through each line in file (until it automatically stops at EOF)
-                if line.strip() == '':
-                    print('EOF')
-                    break
-                
-                line = line.strip() #remove leading and trailing whitespace
-                raw_record = line.split(',') #split the line on the comma character to return a list of CSV items
+        try:
+            with open(FILENAME, 'r') as f: #file context manager
+                for line in f: #iterate through each line in file (until it automatically stops at EOF)                
+                    line = line.strip() #remove leading and trailing whitespace
 
-                record = validate_record(raw_record) #ensure the record is valid and cast the appropriate items in the list to int
+                    record = validate_record(line) #ensure the record is valid and cast the appropriate items in the list to int
 
-                if not record: #if the above validate_record() function returned False (when the raw_record fails any of the validation tests)
-                    print('Record rejected.')
-                    continue #continue to parse next record (doesn't break out to main loop)
-                
-                instance = Student(*record) #create a student instance by unpacking the record list into the 8 positional arguments of the constructor
-                students_list.append(instance) #append the newly created instance to the students_list, the instance variable will then hold the next instance at the next iteration
+                    if not record: #if the above validate_record() function returned False (when the raw_record fails any of the validation tests)
+                        print('Record rejected.')
+                        continue #continue to parse next record (doesn't break out to main loop)
+                    
+                    instance = Student(*record) #create a student instance by unpacking the record list into the 8 positional arguments of the constructor
+                    students_list.append(instance) #append the newly created instance to the students_list, the instance variable will then hold the next instance at the next iteration
+        except FileNotFoundError:
+            print("No file '{}' found in the same directory as this script.".format(FILENAME)) #error msg then restar main loop
+            
         continue  #restart the main loop, once all records in the file have been parsed
     
     if len(students_list) == 0: #if they have not chosen option 1 and there are not entered records, then the following options cannot be processed
@@ -148,5 +184,8 @@ while True:
         continue #restart the main loop
         
     if option == 2:
-        print('todo')
+        display_table('header')
+        for instance in students_list:
+            print(str(instance))
+        display_table('footer')
         
