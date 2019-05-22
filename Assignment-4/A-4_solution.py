@@ -16,7 +16,7 @@ def menu():
     2- Display All student records including total and letter grades and class average
     3- Display the complete record of a particular student
     4- Update a student’s grade
-    5- Display a list of all students who achieved a particular letter grade
+    5- Display the letter grade distribution and a list of students who achieved a particular letter grade
     6- Exit"""
             )
         
@@ -31,20 +31,20 @@ def menu():
 def display_table(part):
     '''Formatting the table that displays the records. Accounts for longer and shorter names by using padding to extend or shorten the table rows. Is called in option2,3 and 4().'''
     padding = Student.max_name_len - len('Names')
-    if part == 'header': #the function is called with an argument that determines what to display
-        print()
-        print('+{}------------|-----------------------------|----------------+'.format('-'*padding))
+    if part == 'record': #the function is called with an argument that determines what to display
+        print('\n+{}------------|-----------------------------|----------------+'.format('-'*padding))
         print('| {:^{}} |            GRADE            |     REPORT     |'.format('INFO', len(' - ID ') + Student.max_name_len))
         print('>{}------------|-----------------------------|---------------<'.format('-'*padding))
         print('| {}Name - ID  | T1 | T2 | A1 | A2 | A3 | A4 | Total | Letter |'.format(' '*padding))
         print('>{}------------|----|----|----|----|----|----|-------|--------<'.format('-'*padding))
-    elif part == 'footer':
-        print('+{}------------|-----------------------------|----------------+'.format('-'*padding))
+    elif part == 'record footer':
+        print('+{}------------|-----------------------------|----------------+\n'.format('-'*padding))
     elif part == 'letter':
-        print('+--------------|-----------------------+')
+        print('\n+--------------|-----------------------+')
         print('| Letter Grade |  {}  |  {}  |  {}  |  {}  |'.format(*LETTERS)) #unpack the global constant tuple into each placeholder
         print('>--------------|-----------------------<')
-
+    elif part == 'letter footer':
+        print('+--------------|-----------------------+\n')
 
 class Student:
     count, max_name_len = 0, 0 #class variables
@@ -184,26 +184,53 @@ def validate_query(query): #query is a string
     return query #if query is valid and the function has gone through all previous validation tests without returning False
 
 
-def validate_grade(grade_name, grade_value):
+def validate_grade(grade):
+    if ',' in grade:
+        grade = grade.split(',')
+    else:
+        print('Please separate the grade name and grade value by a comma, no spaces.', end=' ')
+        return False
+    
+    if len(grade) != 2:
+        print('Please enter both the grade name and grade value.', end=' ')
+        return False
+    
     try:
-        grade_value = int(grade_value)
+        grade[1] = int(grade[1])
     except:
         print('New grade must be an integer.', end=' ')
         return False
+
+    try:
+        grade[0] = grade[0][0].upper() + grade[0][1]
+    except:
+        return False
     
-    if grade_name in ['T'+str(i) for i in range(1,3)]:
-        if (grade_value < 0) or (grade_value > 20):
+    if grade[0] in ['T'+str(i) for i in range(1,3)]:
+        if (grade[1] < 0) or (grade[1] > 20):
             print('Test grades must be between 0 and 20.', end=' ')
             return False
-    elif grade_name in ['A'+str(i) for i in range(1,5)]:
-        if (grade_value < 0) or (grade_value > 15):
+    elif grade[0] in ['A'+str(i) for i in range(1,5)]:
+        if (grade[1] < 0) or (grade[1] > 15):
             print('Assignment grades must be between 0 and 15.', end=' ')
             return False
     else:
         print('Grade names must be either T1 or T2 for tests, or A1, A2, A3, A4 for assignments.', end=' ')
         return False
 
-    return grade_name, grade_value
+    return grade
+
+def validate_letter(letter):
+    try:
+        letter = letter.strip()
+        letter = letter.upper()
+    except:
+        return False
+
+    if letter not in LETTERS:
+        return False
+
+    return letter
 
 def class_average():
     class_total = 0
@@ -245,17 +272,17 @@ while True:
         continue #restart the main loop
         
     if option == 2:
-        display_table('header')
+        display_table('record')
         for instance in students_list:
             print(str(instance))
-        display_table('footer')
+        display_table('record footer')
 
-        print('\nClass Average: {}'.format(class_average()))
+        print('Class Average: {}'.format(class_average()))
 
         continue #restart the main loop 
 
     if option == 3:
-        raw_query = input('Enter the name and ID of the student: ')
+        raw_query = input('Enter the name and ID of the student (separated by a comma, no spaces): ')
         query = validate_query(raw_query) #from the user inputed query string, the function will return a 2-item list consisting of both comma separated values in order, where the name as a str is first and the ID cast to an int is second 
         
         if not query: #if the above validate_query() function returned False (when the raw_query fails any of the validation tests)
@@ -264,9 +291,46 @@ while True:
 
         instance = find_student(query)
 
-        display_table('header')
+        display_table('record')
         print(str(instance))
-        display_table('footer')
+        display_table('record footer')
 
-    
+    if option == 4:
+        raw_query = input('Enter the name and ID of the student (separated by a comma, no spaces): ')
+        query = validate_query(raw_query) #from the user inputed query string, the function will return a 2-item list consisting of both comma separated values in order, where the name as a str is first and the ID cast to an int is second 
+        
+        if not query: #if the above validate_query() function returned False (when the raw_query fails any of the validation tests)
+            print('Invalid query.')
+            continue #restart the main loop
+
+        instance = find_student(query)
+
+        raw_grade = input('Enter the name of the new grade and its value (separated by a comma, no spaces): ')
+        grade = validate_grade(raw_grade)
+
+        if not query: #if the above validate_grade() function returned False (when the raw_grade fails any of the validation tests)
+            print('Invalid grade.')
+            continue #restart the main loop
+
+        instance.update_grade(*grade)
+
+    if option == 5:
+        letter_occurrence = dict.fromkeys(LETTERS, 0)
+        for instance in students_list:
+            letter_occurrence[instance.letter] += 1
+
+        display_table('letter')
+        print('| #of students |{:^5}|{:^5}|{:^5}|{:^5}|'.format(*[letter_occurrence[key] for key in LETTERS]))
+        display_table('letter footer')
+        
+        raw_letter = input('Enter the letter grade: ')
+        letter = validate_letter(raw_letter)
+
+        display_table('record')
+        for instance in students_list:
+            if instance.letter == letter:
+                print(str(instance))
+        display_table('record footer')
+
+        
         
