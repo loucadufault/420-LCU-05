@@ -1,7 +1,8 @@
 import sys
 
 FILENAME = 'students.txt'
-DELIM = ','
+DELIM = ',' #CSV
+PRECISION = 2 #digits after the decimal point for the round() function
 LETTERS = ('A', 'B', 'C', 'D')
 
 students_list = []
@@ -45,23 +46,25 @@ def display_table(part):
 
 
 class Student:
-    student_count, max_name_len = 0, 0 #class variables
+    count, max_name_len = 0, 0 #class variables
     
     def __init__(self, name, ID, T1, T2, A1, A2, A3, A4):
         self.name = name
         if len(self.name) > Student.max_name_len: #updates the max_name_len class variable each time a name is read that is longer than the previous max
             Student.max_name_len = len(self.name)
         self.ID = ID
+        
         self.T1 = T1
         self.T2 = T2
         self.A1 = A1
         self.A2 = A2
         self.A3 = A3
         self.A4 = A4
-        self.total = self.get_total()
-        self.letter = self.get_letter()
+        
+        self.set_total()
+        self.set_letter()
 
-        Student.student_count += 1 #increment the amount of student instances everytime __init__ is called (upon each instance creation)
+        Student.count += 1 #increment the amount of student instances everytime __init__ is called (upon each instance creation)
 
     def __repr__(self):
         return "{} - {}: {} {}".format(self.name, self.ID, self.total, self.letter)
@@ -70,16 +73,22 @@ class Student:
         return "| {:>{}} - {:<3} | {:2} | {:2} | {:2} | {:2} | {:2} | {:2} |  {:>3}  |   {:>2}   |".format(self.name, Student.max_name_len, self.ID, self.T1, self.T2, self.A1, self.A2, self.A3, self.A4, self.total, self.letter)
 
     def __del__(self):
-        student_count -= 1
+        Student.count -= 1
     
     def get_total(self):
         return (self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4)
+
+    def set_total(self):
+        self.total = self.get_total()
 
     def get_letter(self):
         if self.total >= 87: return 'A'
         elif self.total >= 75: return 'B'
         elif self.total >= 65: return 'C'
         else: return 'F'
+
+    def set_letter(self):
+        self.letter = self.get_letter()
 
     def update_grade(self, grade_name, grade_value):
         if grade_name == 'T1': self.T1 = grade_value
@@ -88,6 +97,11 @@ class Student:
         elif grade_name == 'A2': self.A2 = grade_value
         elif grade_name == 'A3': self.A3 = grade_value
         elif grade_name == 'A4': self.A4 = grade_value
+
+        self.set_total()
+        self.set_letter()
+
+        
 
 def is_unique(ID):
     for instance in students_list:
@@ -99,37 +113,37 @@ def validate_record(record):
     if ',' in record:
         record = record.split(DELIM) #split the record on the comma character to return a list of CSV items
     else:
-        print('Please separate items in the record by commas, no spaces.', end='')
+        print('Please separate items in the record by commas, no spaces.', end=' ')
         return False
 
     if len(record) < 8:
-        print('Record incomplete.', end='')
+        print('Record incomplete.', end=' ')
         return False
     if len(record) > 8:
-        print('Record has too many items.', end='')
+        print('Record has too many items.', end=' ')
         return False
             
     for i in range(1, 8): #try to cast the ID and all grades to integer
         try:
             record[i] = int(record[i])
         except:
-            print(record[i] + ' must be an integer.', end='')
+            print(record[i] + ' must be an integer.', end=' ')
             return False
             
     if (record[1] < 0) or (record[1] > 999): #ID
-        print('ID must be between 000 and 999.', end='')
+        print('ID must be between 000 and 999.', end=' ')
         return False
     for i in range(2,4): #tests
         if (record[i] < 0) or (record[i] > 20):
-            print('Test grades must be between 0 and 20.', end='')
+            print('Test grades must be between 0 and 20.', end=' ')
             return False
     for i in range(4,8): #assignments
         if (record[i] < 0) or (record[i] > 15):
-            print('Asignment grades must be between 0 and 15.', end='')
+            print('Asignment grades must be between 0 and 15.', end=' ')
             return False
 
     if not (is_unique(record[1])): #check if the inputed ID is unique
-        print('Duplicate ID number.', end='')
+        print('Duplicate ID number.', end=' ')
         return False
         
     return record #if record is valid and the function has gone through all previous validation tests without returning False
@@ -139,23 +153,30 @@ def validate_grade(grade_name, grade_value):
     try:
         grade_value = int(grade_value)
     except:
-        print('New grade must be an integer.', end='')
+        print('New grade must be an integer.', end=' ')
         return False
     
     if grade_name in ['T'+str(i) for i in range(1,3)]:
         if (grade_value < 0) or (grade_value > 20):
-            print('Test grades must be between 0 and 20.', end='')
+            print('Test grades must be between 0 and 20.', end=' ')
             return False
     elif grade_name in ['A'+str(i) for i in range(1,5)]:
         if (grade_value < 0) or (grade_value > 20):
-            print('Asignment grades must be between 0 and 15.', end='')
+            print('Assignment grades must be between 0 and 15.', end=' ')
             return False
     else:
-        print('Grade names must be either T1 or T2 fór tests, or A1, A2, A3, A4 for assignments.', end='')
+        print('Grade names must be either T1 or T2 for tests, or A1, A2, A3, A4 for assignments.', end=' ')
         return False
 
     return grade_name, grade_value
 
+def class_average():
+    class_total = 0
+    for instance in students_list:
+        class_total += instance.total
+
+    return round(class_total/Student.count, PRECISION)
+        
 
 while True:
     option = menu()
@@ -179,7 +200,7 @@ while True:
             
         continue  #restart the main loop, once all records in the file have been parsed
     
-    if len(students_list) == 0: #if they have not chosen option 1 and there are not entered records, then the following options cannot be processed
+    if len(students_list) == 0: #if they have not chosen option 1 and there are no entered records, then the following options cannot be processed
         print('No records were entered. Please choose option 1 first.')
         continue #restart the main loop
         
@@ -188,4 +209,6 @@ while True:
         for instance in students_list:
             print(str(instance))
         display_table('footer')
+
+        print('\nClass Average: {}'.format(class_average()))
         
