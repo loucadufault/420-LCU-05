@@ -1,9 +1,9 @@
-import sys
+import sys #used only for sys.exit() in option 6
 
-FILENAME = 'students.txt'
-DELIM = ',' #CSV
+FILENAME = 'students.txt' #name of the file from where the student records will be read
+DELIM = ',' #delimiter that the program should expect, both in the (CSV) file and user inputs
 PRECISION = 2 #digits after the decimal point for the round() function
-LETTERS = ('A', 'B', 'C', 'D')
+LETTERS = ('A', 'B', 'C', 'D') #possible letter grades
 
 students_list = []
 
@@ -23,7 +23,7 @@ def menu():
         try:
             option = int(input())
             if (option >= 1) and (option <= 6): return option
-            else: print('Please enter a number between 1 and 5.')
+            else: print('Please enter a number between 1 and 6.')
         except:
             print('Please enter an integer.')
             continue
@@ -67,20 +67,15 @@ class Student:
 
         Student.count += 1 #increment the amount of student instances everytime __init__ is called (upon each instance creation)
 
-    def __repr__(self):
-        return "{} - {}: {} {}".format(self.name, self.ID, self.total, self.letter)
+    def __repr__(self): return "{} - {}: {} {}".format(self.name, self.ID, self.total, self.letter)
 
-    def __str__(self):
-        return "| {:>{}} - {:<3} | {:2} | {:2} | {:2} | {:2} | {:2} | {:2} |  {:>3}  |   {:>2}   |".format(self.name, Student.max_name_len, self.ID, self.T1, self.T2, self.A1, self.A2, self.A3, self.A4, self.total, self.letter)
+    def __str__(self): return "| {:>{}} - {:<3} | {:2} | {:2} | {:2} | {:2} | {:2} | {:2} |  {:>3}  |   {:>2}   |".format(self.name, Student.max_name_len, self.ID, self.T1, self.T2, self.A1, self.A2, self.A3, self.A4, self.total, self.letter)
 
-    def __del__(self):
-        Student.count -= 1
+    def __del__(self): Student.count -= 1
     
-    def get_total(self):
-        return (self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4)
+    def get_total(self): return (self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4)
 
-    def set_total(self):
-        self.total = self.get_total()
+    def set_total(self): self.total = self.get_total()
 
     def get_letter(self):
         if self.total >= 87: return 'A'
@@ -88,8 +83,7 @@ class Student:
         elif self.total >= 65: return 'C'
         else: return 'F'
 
-    def set_letter(self):
-        self.letter = self.get_letter()
+    def set_letter(self): self.letter = self.get_letter()
 
     def update_grade(self, grade_name, grade_value):
         if grade_name == 'T1': self.T1 = grade_value
@@ -314,6 +308,8 @@ while True:
 
         instance.update_grade(*grade)
 
+        continue #restart main loop
+
     if option == 5:
         letter_occurrence = dict.fromkeys(LETTERS, 0)
         for instance in students_list:
@@ -331,6 +327,10 @@ while True:
             if instance.letter == letter:
                 print(str(instance))
         display_table('record footer')
+        
+        continue #restart main loop
 
+    if option == 6:
+        sys.exit()
         
         
