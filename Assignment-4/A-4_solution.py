@@ -9,7 +9,7 @@ students_list = []
 
 def menu():
     while True:
-        print('\n')
+        print('')
         print(
 """Welcome to the Teacher’s Simple Class Calculator. Here’s the list of options:
     1- Read and process all students’ records
@@ -32,6 +32,7 @@ def display_table(part):
     '''Formatting the table that displays the records. Accounts for longer and shorter names by using padding to extend or shorten the table rows. Is called in option2,3 and 4().'''
     padding = Student.max_name_len - len('Names')
     if part == 'header': #the function is called with an argument that determines what to display
+        print()
         print('+{}------------|-----------------------------|----------------+'.format('-'*padding))
         print('| {:^{}} |            GRADE            |     REPORT     |'.format('INFO', len(' - ID ') + Student.max_name_len))
         print('>{}------------|-----------------------------|---------------<'.format('-'*padding))
@@ -109,6 +110,12 @@ def is_unique(ID):
             return False
     return True
 
+def instance_exists(query):
+    for instance in students_list:
+        if (instance.name == query[0]) and (instance.ID == query[1]):
+            return True
+    return False
+
 def validate_record(record):
     if ',' in record:
         record = record.split(DELIM) #split the record on the comma character to return a list of CSV items
@@ -149,6 +156,34 @@ def validate_record(record):
     return record #if record is valid and the function has gone through all previous validation tests without returning False
 
 
+def validate_query(query): #query is a string
+    if ',' in query:
+        query = query.split(',')
+    else:
+        print('Please separate the name and ID by a comma, no spaces.', end=' ')
+        return False
+    
+    if len(query) != 2:
+        print('Please enter both the name and ID.', end=' ')
+        return False
+    
+    try: #try to cast the query ID to int
+        query[1] = int(query[1])
+    except:
+        print('The ID must be an integer.', end=' ')
+        return False
+
+    if (query[1] < 0) or (query[1] > 999):
+        print('ID must be between 000 and 999.', end=' ')
+        return False
+
+    if not (instance_exists(query)): #check if there are any instances matching the query
+        print('No student records matching that query.', end=' ')
+        return False
+
+    return query #if query is valid and the function has gone through all previous validation tests without returning False
+
+
 def validate_grade(grade_name, grade_value):
     try:
         grade_value = int(grade_value)
@@ -161,7 +196,7 @@ def validate_grade(grade_name, grade_value):
             print('Test grades must be between 0 and 20.', end=' ')
             return False
     elif grade_name in ['A'+str(i) for i in range(1,5)]:
-        if (grade_value < 0) or (grade_value > 20):
+        if (grade_value < 0) or (grade_value > 15):
             print('Assignment grades must be between 0 and 15.', end=' ')
             return False
     else:
@@ -176,6 +211,11 @@ def class_average():
         class_total += instance.total
 
     return round(class_total/Student.count, PRECISION)
+
+def find_student(query): #the query necessarily corresponds to a specific instance, since the validate_query() function ensures the query matches an instance
+    for instance in students_list: 
+        if (instance.name == query[0]) and (instance.ID == query[1]):
+            return instance
         
 
 while True:
@@ -196,7 +236,7 @@ while True:
                     instance = Student(*record) #create a student instance by unpacking the record list into the 8 positional arguments of the constructor
                     students_list.append(instance) #append the newly created instance to the students_list, the instance variable will then hold the next instance at the next iteration
         except FileNotFoundError:
-            print("No file '{}' found in the same directory as this script.".format(FILENAME)) #error msg then restar main loop
+            print("No file '{}' found in the same directory as this script.".format(FILENAME)) #error msg then restart main loop
             
         continue  #restart the main loop, once all records in the file have been parsed
     
@@ -211,4 +251,22 @@ while True:
         display_table('footer')
 
         print('\nClass Average: {}'.format(class_average()))
+
+        continue #restart the main loop 
+
+    if option == 3:
+        raw_query = input('Enter the name and ID of the student: ')
+        query = validate_query(raw_query) #from the user inputed query string, the function will return a 2-item list consisting of both comma separated values in order, where the name as a str is first and the ID cast to an int is second 
+        
+        if not query: #if the above validate_query() function returned False (when the raw_query fails any of the validation tests)
+            print('Invalid query.')
+            continue #restart the main loop
+
+        instance = find_student(query)
+
+        display_table('header')
+        print(str(instance))
+        display_table('footer')
+
+    
         
