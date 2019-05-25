@@ -200,11 +200,11 @@ def validate_grade(grade):
     except:
         return False
     
-    if grade[0] in ['T'+str(i) for i in range(1,3)]:
+    if grade[0] in ['T'+str(i) for i in range(1,3)]: #T1 T2
         if (grade[1] < 0) or (grade[1] > 20):
             print('Test grades must be between 0 and 20.', end=' ')
             return False
-    elif grade[0] in ['A'+str(i) for i in range(1,5)]:
+    elif grade[0] in ['A'+str(i) for i in range(1,5)]: #A1 A2 A3 A4
         if (grade[1] < 0) or (grade[1] > 15):
             print('Assignment grades must be between 0 and 15.', end=' ')
             return False
@@ -222,6 +222,7 @@ def validate_letter(letter):
         return False
 
     if letter not in LETTERS:
+        print('Letter must be either {} or {}'.format(', '.join(LETTERS[:-1]), LETTERS[-1]))
         return False
 
     return letter
