@@ -86,13 +86,8 @@ class Student:
     def set_letter(self): self.letter = self.get_letter()
 
     def update_grade(self, grade_name, grade_value):
-        if grade_name == 'T1': self.T1 = grade_value
-        elif grade_name == 'T2': self.T2 = grade_value
-        elif grade_name == 'A1': self.A1 = grade_value
-        elif grade_name == 'A2': self.A2 = grade_value
-        elif grade_name == 'A3': self.A3 = grade_value
-        elif grade_name == 'A4': self.A4 = grade_value
-
+        setattr(self, grade_name, grade_value)
+        
         self.set_total()
         self.set_letter()
 
