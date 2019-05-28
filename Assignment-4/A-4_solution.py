@@ -4,6 +4,9 @@ FILENAME = 'students.txt' #name of the file from where the student records will 
 DELIM = ',' #delimiter that the program should expect, both in the (CSV) file and user inputs
 PRECISION = 2 #digits after the decimal point for the round() function
 LETTERS = ('A', 'B', 'C', 'D') #possible letter grades
+TEST_MAX_GRADE = 20
+ASSIGN_MAX_GRADE = 15
+
 
 students_list = []
 
@@ -33,7 +36,7 @@ def display_table(part):
     padding = Student.max_name_len - len('Names')
     if part == 'record': #the function is called with an argument that determines what to display
         print('\n+{}------------|-----------------------------|----------------+'.format('-'*padding))
-        print('| {:^{}} |            GRADE            |     REPORT     |'.format('INFO', len(' - ID ') + Student.max_name_len))
+        print('| {:^{}} |            GRADE            |     REPORT     |'.format('INFO', len(' - ID ') + max(len('Name'), Student.max_name_len) ))
         print('>{}------------|-----------------------------|---------------<'.format('-'*padding))
         print('| {}Name - ID  | T1 | T2 | A1 | A2 | A3 | A4 | Total | Letter |'.format(' '*padding))
         print('>{}------------|----|----|----|----|----|----|-------|--------<'.format('-'*padding))
@@ -71,9 +74,14 @@ class Student:
 
     def __str__(self): return "| {:>{}} - {:<3} | {:2} | {:2} | {:2} | {:2} | {:2} | {:2} |  {:>3}  |   {:>2}   |".format(self.name, Student.max_name_len, self.ID, self.T1, self.T2, self.A1, self.A2, self.A3, self.A4, self.total, self.letter)
 
-    def __del__(self): Student.count -= 1
+    def __del__(self): Student.count -= 1 #not necessary, no UI to delete instance
     
-    def get_total(self): return (self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4)
+    def get_total(self):
+        total = self.T1 + self.T2 + self.A1 + self.A2 + self.A3 + self.A4
+        max_grade = TEST_MAX_GRADE*2 + ASSIGN_MAX_GRADE*4
+        if max_grade != 100:
+            total = round((total / max_grade)*100, PRECISION) #make the grade out of 100
+        return total
 
     def set_total(self): self.total = self.get_total()
 
@@ -112,11 +120,8 @@ def validate_record(record):
         print('Please separate items in the record by commas, no spaces.', end=' ')
         return False
 
-    if len(record) < 8:
-        print('Record incomplete.', end=' ')
-        return False
-    if len(record) > 8:
-        print('Record has too many items.', end=' ')
+    if len(record) != 8:
+        print('Record {}.'.format('incomplete' if len(record) < 8 else 'has too many items'), end=' ')
         return False
             
     for i in range(1, 8): #try to cast the ID and all grades to integer
@@ -130,12 +135,12 @@ def validate_record(record):
         print('ID must be between 000 and 999.', end=' ')
         return False
     for i in range(2,4): #tests
-        if (record[i] < 0) or (record[i] > 20):
-            print('Test grades must be between 0 and 20.', end=' ')
+        if (record[i] < 0) or (record[i] > TEST_MAX_GRADE):
+            print('Test grades must be between 0 and {}.'.format(TEST_MAX_GRADE), end=' ')
             return False
     for i in range(4,8): #assignments
-        if (record[i] < 0) or (record[i] > 15):
-            print('Asignment grades must be between 0 and 15.', end=' ')
+        if (record[i] < 0) or (record[i] > ASSIGN_MAX_GRADE):
+            print('Asignment grades must be between 0 and {}.'.format(ASSIGN_MAX_GRADE), end=' ')
             return False
 
     if not (is_unique(record[1])): #check if the inputed ID is unique
@@ -153,7 +158,7 @@ def validate_query(query): #query is a string
         return False
     
     if len(query) != 2:
-        print('Please enter both the name and ID.', end=' ')
+        print('Please enter {} the name and ID.'.format('both' if len(query) < 2 else 'only'), end=' ')
         return False
     
     try: #try to cast the query ID to int
@@ -181,7 +186,7 @@ def validate_grade(grade):
         return False
     
     if len(grade) != 2:
-        print('Please enter both the grade name and grade value.', end=' ')
+        print('Please enter {} the grade name and grade value.'.format('both' if len(query) < 2 else 'only'), end=' ')
         return False
     
     try:
@@ -196,12 +201,12 @@ def validate_grade(grade):
         return False
     
     if grade[0] in ['T'+str(i) for i in range(1,3)]: #T1 T2
-        if (grade[1] < 0) or (grade[1] > 20):
-            print('Test grades must be between 0 and 20.', end=' ')
+        if (grade[1] < 0) or (grade[1] > TEST_MAX_GRADE):
+            print('Test grades must be between 0 and {}.'.format(TEST_MAX_GRADE), end=' ')
             return False
     elif grade[0] in ['A'+str(i) for i in range(1,5)]: #A1 A2 A3 A4
-        if (grade[1] < 0) or (grade[1] > 15):
-            print('Assignment grades must be between 0 and 15.', end=' ')
+        if (grade[1] < 0) or (grade[1] > ASSIGN_MAX_GRADE):
+            print('Assignment grades must be between 0 and {}.'.format(ASSIGN_MAX_GRADE), end=' ')
             return False
     else:
         print('Grade names must be either T1 or T2 for tests, or A1, A2, A3, A4 for assignments.', end=' ')
@@ -321,7 +326,7 @@ while True:
         display_table('record')
         for instance in students_list:
             if instance.letter == letter:
-                print(str(instance))
+                print(str(instance)) #__str__
         display_table('record footer')
         
         continue #restart main loop
