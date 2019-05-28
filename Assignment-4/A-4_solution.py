@@ -7,14 +7,12 @@ LETTERS = ('A', 'B', 'C', 'D') #possible letter grades
 TEST_MAX_GRADE = 20
 ASSIGN_MAX_GRADE = 15
 
-
 students_list = []
 
 def menu():
     while True:
-        print('')
         print(
-"""Welcome to the Teacher’s Simple Class Calculator. Here’s the list of options:
+"""\nWelcome to the Teacher’s Simple Class Calculator. Here’s the list of options:
     1- Read and process all students’ records
     2- Display All student records including total and letter grades and class average
     3- Display the complete record of a particular student
@@ -24,7 +22,7 @@ def menu():
             )
         
         try:
-            option = int(input())
+            option = int(input().strip())
             if (option >= 1) and (option <= 6): return option
             else: print('Please enter a number between 1 and 6.')
         except:
@@ -114,8 +112,8 @@ def instance_exists(query):
     return False
 
 def validate_record(record):
-    if ',' in record:
-        record = record.split(DELIM) #split the record on the comma character to return a list of CSV items
+    if DELIM in record:
+        record = record.split(DELIM) #split the record on the DELIM character to return a list of CSV items
     else:
         print('Please separate items in the record by commas, no spaces.', end=' ')
         return False
@@ -151,8 +149,8 @@ def validate_record(record):
 
 
 def validate_query(query): #query is a string
-    if ',' in query:
-        query = query.split(',')
+    if DELIM in query:
+        query = query.split(DELIM)
     else:
         print('Please separate the name and ID by a comma, no spaces.', end=' ')
         return False
@@ -179,8 +177,8 @@ def validate_query(query): #query is a string
 
 
 def validate_grade(grade):
-    if ',' in grade:
-        grade = grade.split(',')
+    if DELIM in grade:
+        grade = grade.split(DELIM)
     else:
         print('Please separate the grade name and grade value by a comma, no spaces.', end=' ')
         return False
